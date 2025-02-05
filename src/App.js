@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { database } from './firebase';
 import TodoList from './components/TodoList';
 import './App.css';
 
@@ -10,29 +10,35 @@ function App() {
   const [sortAlphabetically, setSortAlphabetically] = useState(false);
 
   useEffect(() => {
-    axios.get('http://localhost:3001/todos')
-      .then(response => setTodos(response.data))
-      .catch(error => console.error('Error fetching todos:', error));
+    const todosRef = database.ref('todos');
+    todosRef.on('value', (snapshot) => {
+      const todosData = snapshot.val();
+      const todosList = [];
+      for (let id in todosData) {
+        todosList.push({ id, ...todosData[id] });
+      }
+      setTodos(todosList);
+    });
   }, []);
 
   const addTodo = () => {
-    axios.post('http://localhost:3001/todos', { title: newTodo, completed: false })
-      .then(response => setTodos([...todos, response.data]))
-      .catch(error => console.error('Error adding todo:', error));
+    const todosRef = database.ref('todos');
+    const newTodoRef = todosRef.push();
+    newTodoRef.set({ title: newTodo, completed: false });
     setNewTodo('');
   };
 
   const deleteTodo = (id) => {
-    axios.delete(`http://localhost:3001/todos/${id}`)
-      .then(() => setTodos(todos.filter(todo => todo.id !== id)))
-      .catch(error => console.error('Error deleting todo:', error));
+    const todoRef = database.ref(`todos/${id}`);
+    todoRef.remove();
   };
 
   const toggleComplete = (id) => {
-    const todo = todos.find(t => t.id === id);
-    axios.put(`http://localhost:3001/todos/${id}`, { ...todo, completed: !todo.completed })
-      .then(() => setTodos(todos.map(t => t.id === id ? { ...t, completed: !t.completed } : t)))
-      .catch(error => console.error('Error updating todo:', error));
+    const todoRef = database.ref(`todos/${id}`);
+    todoRef.once('value', (snapshot) => {
+      const todo = snapshot.val();
+      todoRef.update({ completed: !todo.completed });
+    });
   };
 
   const filteredTodos = todos.filter(todo => todo.title.includes(searchTerm));
