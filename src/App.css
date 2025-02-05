@@ -10,6 +10,11 @@
   margin: 10px 0;
 }
 
-.todo-item input {
-  margin-right: 10px;
+.todo-item a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.todo-item a:hover {
+  text-decoration: underline;
 }

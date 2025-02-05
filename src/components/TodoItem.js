@@ -1,11 +1,17 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
-function TodoItem({ todo, onDelete, onToggleComplete }) {
+function TodoItem({ todo }) {
+  const truncateText = (text, maxLength) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
+
   return (
     <div className="todo-item">
-      <input type="checkbox" checked={todo.completed} onChange={() => onToggleComplete(todo.id)} />
-      <span>{todo.title}</span>
-      <button onClick={() => onDelete(todo.id)}>Delete</button>
+      <Link to={`/task/${todo.id}`}>
+        {truncateText(todo.title, 30)}
+      </Link>
     </div>
   );
 }
